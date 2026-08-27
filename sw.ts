@@ -1,5 +1,6 @@
-import { defaultCache } from '@serwist/next/worker';
-import { type PrecacheEntry, Serwist } from 'serwist';
+/// <reference lib="webworker" />
+import { defaultCache } from "@serwist/next/worker";
+import { type PrecacheEntry, Serwist } from "serwist";
 
 declare global {
   interface WorkerGlobalScope {
@@ -15,15 +16,16 @@ const serwist = new Serwist({
   clientsClaim: true,
   navigationPreload: true,
   runtimeCaching: [
-    // 🟢 針對 OpenStreetMap 圖資設定強制快取 (Cache First)
     {
+      // 擷取所有 OpenStreetMap 圖塊請求
       matcher: /^https:\/\/.*\.tile\.openstreetmap\.org\/.*/i,
-      handler: 'CacheFirst',
+      // 🟢 戰術調整：改用 StaleWhileRevalidate，完美相容跨網域圖資與 Opaque 響應
+      handler: "StaleWhileRevalidate",
       options: {
-        cacheName: 'osm-map-tiles',
+        cacheName: "osm-map-tiles",
         expiration: {
-          maxEntries: 2000, // 調高容量限制以應付大量地圖圖塊
-          maxAgeSeconds: 60 * 60 * 24 * 30, // 快取保留 30 天
+          maxEntries: 2000,
+          maxAgeSeconds: 60 * 60 * 24 * 30, // 確保圖資在無網路環境下保留 30 天
         },
       },
     },
