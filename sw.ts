@@ -18,11 +18,12 @@ const serwist = new Serwist({
   navigationPreload: true,
   runtimeCaching: [
     {
-      // 🟢 戰術調整：捨棄正則表達式，改用精確的 URL 屬性解析函數，確保 100% 攔截跨網域地圖
       matcher: ({ url }) => url.hostname.includes("openstreetmap.org"),
-      handler: "StaleWhileRevalidate" as any,
+      // 🟢 戰術調整：改用 CacheFirst，斷網時絕對不發起網路請求，直接讀取快取
+      handler: "CacheFirst" as any,
       options: {
-        cacheName: "osm-map-tiles",
+        // 🟢 強制更名：加上 -v2 強迫 Safari 建立全新快取空間
+        cacheName: "osm-map-tiles-v2",
         expiration: {
           maxEntries: 2000,
           maxAgeSeconds: 60 * 60 * 24 * 30, // 快取保留 30 天
